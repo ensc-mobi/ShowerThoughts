@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { StyleSheet, Text, View, TextInput, FlatList } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
+// AsyncStorage key used for storing ideas
 const STORAGE_KEY = "ASYNC_STORAGE_IDEAS";
 
 export default function App() {
@@ -10,10 +11,22 @@ export default function App() {
   // Ideas list, initially empty
   const [ideas, setIdeas] = useState([]);
 
-  const saveIdeas = async () => {
+  // Clear local storage
+  const resetIdeas = async () => {
+    console.log("Removing ideas from local storage...");
+    try {
+      await AsyncStorage.multiRemove([STORAGE_KEY]);
+    } catch (e) {
+      console.error("Failed to clear ideas");
+    }
+  };
+
+  // Save ideas array parameter to local storage
+  const saveIdeas = async (newIdeas) => {
+    console.log(`Saving ideas [${newIdeas}] to local storage...`);
     try {
       // Turn ideas array into a JSON string
-      const jsonIdeas = JSON.stringify(ideas);
+      const jsonIdeas = JSON.stringify(newIdeas);
       // Store ideas string
       await AsyncStorage.setItem(STORAGE_KEY, jsonIdeas);
     } catch (e) {
@@ -21,8 +34,9 @@ export default function App() {
     }
   };
 
+  // Load ideas from local storage
   const loadIdeas = async () => {
-    // Load ideas from local storage
+    console.log("Loading ideas from local storage...");
     try {
       // Load ideas string
       const jsonIdeas = await AsyncStorage.getItem(STORAGE_KEY);
@@ -37,13 +51,10 @@ export default function App() {
 
   // Load ideas only during initial component mounting
   useEffect(() => {
+    // Uncomment to clear ideas from local storage
+    // resetIdeas();
     loadIdeas();
   }, []);
-
-  // Save ideas whenever its content changes
-  useEffect(() => {
-    saveIdeas();
-  }, [ideas]);
 
   return (
     <View style={styles.container}>
@@ -60,7 +71,11 @@ export default function App() {
           if (!input) return; // Don't submit if empty
 
           // Append new idea at end of ideas array
-          setIdeas((ideas) => [...ideas, input]);
+          const newIdeas = [...ideas, input];
+          saveIdeas(newIdeas);
+          // Update state
+          setIdeas(newIdeas);
+
           // Reset input value
           setInput("");
         }}
@@ -91,6 +106,5 @@ const styles = StyleSheet.create({
   },
   item: {
     padding: 5,
-    //fontSize: 16,
   },
 });
