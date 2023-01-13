@@ -22,7 +22,7 @@ export default function App() {
     <View style={styles.container}>
       <Input
         onSubmit={(newIdea) => {
-          // Append new idea at end of ideas array
+          // Creating a new ideas array with new idea at the end
           const newIdeas = [...ideas, newIdea];
           saveIdeas(newIdeas);
           // Update state
